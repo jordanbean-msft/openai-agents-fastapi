@@ -1,0 +1,10 @@
+POST http://127.0.0.1:8000/v1/test HTTP/1.1
+content-type: application/json
+
+{
+	"test": 
+}
+
+###
+
+GET http://127.0.0.1:8000/v1/startup

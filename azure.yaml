@@ -1,2 +1,19 @@
-name: template-repository
+name: openai-agents-fastapi
+pipeline:
+  provider: azdo
+infra:
+  provider: terraform
 services:
+  api:
+    project: ./src/api
+    language: py
+    host: containerapp
+    build:
+      dockerfile: Dockerfile
+      context: ./src/api
+state:
+  remote:
+    backend: AzureBlobStorage
+    config:
+      accountName: 
+      containerName: openai-agents-fastapi

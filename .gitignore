@@ -348,3 +348,26 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+.venv/
+
+.env
+
+.terraform/
+
+.terraform.lock.hcl
+
+.azure/
+
+**/data/*.csv
+
+.vscode/settings.json
+
+.ruff_cache/
+
+.pytest_cache/
+
+**/api_env/
+
+**/*.db
+
