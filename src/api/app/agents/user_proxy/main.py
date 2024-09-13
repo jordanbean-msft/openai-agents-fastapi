@@ -14,7 +14,10 @@ def create_agent() -> UserProxyAgent:
         name="user",
         llm_config=None,
         human_input_mode="NEVER",
-        code_execution_config={"executor": executor},
+        code_execution_config={
+            "last_n_messages": 2,
+            "executor": executor
+        },
     )
 
     logger.debug(f"Agent created - NAME: {agent.name}")

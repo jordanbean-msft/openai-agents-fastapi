@@ -36,7 +36,12 @@ async def analyze(dependencies, stock_news_input):
 
     #dep = await dependencies()
 
-    chat_results = await build_chat_results(dependencies, message)
+    results = await build_chat_results(dependencies, message)
+
+    if hasattr(results, 'items'):
+        chat_results = results
+    else:
+        chat_results = { 'input': results }
 
     analyze_test_results = build_analyze_test_results(chat_results)
 
@@ -52,6 +57,7 @@ async def analyze(dependencies, stock_news_input):
 
 def build_analyze_test_results(chat_results):
     return_chat_results = []
+
     for key, chat_result in chat_results.items():
         usage_including_cached_inference = TokenUsage(
             prompt_tokens=0, completion_tokens=0, total_tokens=0
@@ -104,29 +110,33 @@ def build_analyze_test_results(chat_results):
 
 
 async def build_chat_results(dependencies, message):
-    with tracer.start_as_current_span(name="build_chat_results"):        
-        chat_results = await dependencies.agent_user_proxy.a_initiate_chats(
-            [
-                {
-                    "chat_id": 1,
-                    "sender": dependencies.agent_user_proxy,
-                    "recipient": dependencies.news_data_agent,
-                    "message": message,
-                    "max_turns": 2,
-                    "summary_method": "last_msg",
-                    "verbose": True,
-                },
-                {
-                    "chat_id": 2,
-                    "sender": dependencies.agent_user_proxy,
-                    "recipient": dependencies.stock_data_agent,
-                    "message": message,
-                    "max_turns": 2,
-                    "summary_method": "last_msg",
-                    "verbose": True,
-                    "prerequisites": [1],
-                },
-            ]
+    with tracer.start_as_current_span(name="build_chat_results"):
+        chat_results = await dependencies.agent_user_proxy.a_initiate_chat(
+            dependencies.manager,
+            message=message
         )
+        # chat_results = await dependencies.agent_user_proxy.a_initiate_chats(
+        #     [
+        #         {
+        #             "chat_id": 1,
+        #             "sender": dependencies.agent_user_proxy,
+        #             "recipient": dependencies.news_data_agent,
+        #             "message": message,
+        #             "max_turns": 2,
+        #             "summary_method": "last_msg",
+        #             "verbose": True,
+        #         },
+        #         {
+        #             "chat_id": 2,
+        #             "sender": dependencies.agent_user_proxy,
+        #             "recipient": dependencies.stock_data_agent,
+        #             "message": message,
+        #             "max_turns": 2,
+        #             "summary_method": "last_msg",
+        #             "verbose": True,
+        #             "prerequisites": [1],
+        #         },
+        #     ]
+        # )
 
     return chat_results

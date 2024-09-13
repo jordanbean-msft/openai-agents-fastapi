@@ -2,7 +2,7 @@ import asyncio
 import logging
 from functools import lru_cache
 
-from autogen import AssistantAgent, UserProxyAgent
+from autogen import AssistantAgent, UserProxyAgent, GroupChat, GroupChatManager
 from fastapi import Depends
 from msal import ConfidentialClientApplication
 
@@ -60,10 +60,22 @@ async def setup_agents_internal() -> AllAgents:
 
     register_functions(stock_data_agent, agent_user_proxy)
 
+    groupChat = GroupChat(agents=[
+        news_data_agent,
+        stock_data_agent,
+        agent_user_proxy
+    ], messages=[])
+
+    manager = GroupChatManager(groupchat=groupChat, llm_config={
+            "config_list": [config],
+            "cache_seed": None,
+        })
+
     return AllAgents(
         news_data_agent=news_data_agent,
         stock_data_agent=stock_data_agent,
-        agent_user_proxy=agent_user_proxy
+        agent_user_proxy=agent_user_proxy,
+        manager=manager
     )
 
 
@@ -86,6 +98,7 @@ class Agents:
         self.news_data_agent = common.news_data_agent
         self.stock_data_agent = common.stock_data_agent
         self.agent_user_proxy = common.agent_user_proxy
+        self.manager = common.manager
 
 
 __all__ = ["setup_agents", "Agents"]
