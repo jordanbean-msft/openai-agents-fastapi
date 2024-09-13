@@ -1,3 +1,5 @@
+from .config import get_settings
+
 from azure.monitor.opentelemetry import configure_azure_monitor
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
@@ -20,6 +22,6 @@ def setup_otel_logging(module_name, app):
 
 def configure_azure_monitor_outer():
     configure_azure_monitor(
-        connection_string="",
+        connection_string=get_settings().application_insights_connection_string,
         enable_live_metrics=True,
     )

@@ -4,12 +4,13 @@ from typing import Annotated
 import nest_asyncio
 from fastapi import APIRouter, Depends
 from opentelemetry import trace
+import autogen
 
 from ..config import get_settings
 from ..dependencies import Agents
 from ..models.chat_history import ChatHistory
-from ..models.test_input import TestInput
-from ..models.test_output import TestResults
+from ..models.stock_news_input import StockNewsInput
+from ..models.stock_news_output import StockNewsOutput
 from ..models.token_usage import TokenUsage
 
 # NOTE: this is required due to a bug in the autogen package when calling functions in a nested chat
@@ -22,35 +23,35 @@ tracer = trace.get_tracer(__name__)
 router = APIRouter()
 
 
-@tracer.start_as_current_span(name="test")
-@router.post("/test")
-async def post_test(
-    dependencies: Annotated[Agents, Depends()], test_input: TestInput
-) -> TestResults:
-    return await evaluate_risk(dependencies, test_input)
+@tracer.start_as_current_span(name="analyze")
+@router.post("/analyze")
+async def post_analyze(
+    dependencies: Annotated[Agents, Depends()], stock_news_input: StockNewsInput
+) -> StockNewsOutput:
+    return await analyze(dependencies, stock_news_input)
 
 
-async def evaluate_risk(dependencies, test_input):
-    message = ""
+async def analyze(dependencies, stock_news_input):
+    message = f"Analyze the stock prices and news articles for {stock_news_input.companyName} ({stock_news_input.stockTicker}). Determine if there is correlation between the two."
 
-    dep = await dependencies()
+    #dep = await dependencies()
 
-    chat_results = await build_chat_results(dep, message)
+    chat_results = await build_chat_results(dependencies, message)
 
-    test_chat_results = build_risk_results_chat_results(chat_results)
+    analyze_test_results = build_analyze_test_results(chat_results)
 
-    result = TestResults(
-        test=test_input.test,
+    result = StockNewsOutput(
+        stockTicker=stock_news_input.stockTicker,
+        companyName=stock_news_input.companyName,
         overall_result=list(chat_results.values())[-1].summary,
-        chat_results=test_chat_results,
+        chat_results=analyze_test_results,
     )
 
     return result
 
 
-def build_risk_results_chat_results(chat_results):
+def build_analyze_test_results(chat_results):
     return_chat_results = []
-    # for chat_result in chat_results:
     for key, chat_result in chat_results.items():
         usage_including_cached_inference = TokenUsage(
             prompt_tokens=0, completion_tokens=0, total_tokens=0
@@ -59,7 +60,6 @@ def build_risk_results_chat_results(chat_results):
             prompt_tokens=0, completion_tokens=0, total_tokens=0
         )
 
-        # TODO: figure out how to parameterize the model name
         if (
             get_settings().openai_model_api_name
             in chat_result.cost["usage_including_cached_inference"]
@@ -104,13 +104,13 @@ def build_risk_results_chat_results(chat_results):
 
 
 async def build_chat_results(dependencies, message):
-    with tracer.start_as_current_span(name="build_chat_results"):
+    with tracer.start_as_current_span(name="build_chat_results"):        
         chat_results = await dependencies.agent_user_proxy.a_initiate_chats(
             [
                 {
                     "chat_id": 1,
                     "sender": dependencies.agent_user_proxy,
-                    "recipient": dependencies.agent1,
+                    "recipient": dependencies.news_data_agent,
                     "message": message,
                     "max_turns": 2,
                     "summary_method": "last_msg",
@@ -119,7 +119,7 @@ async def build_chat_results(dependencies, message):
                 {
                     "chat_id": 2,
                     "sender": dependencies.agent_user_proxy,
-                    "recipient": dependencies.agent2,
+                    "recipient": dependencies.stock_data_agent,
                     "message": message,
                     "max_turns": 2,
                     "summary_method": "last_msg",

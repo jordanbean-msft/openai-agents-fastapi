@@ -5,8 +5,8 @@ from autogen import AssistantAgent, UserProxyAgent
 
 @dataclass
 class AllAgents:
-    agent1: AssistantAgent
-    agent2: AssistantAgent
+    news_data_agent: AssistantAgent
+    stock_data_agent: AssistantAgent
     agent_user_proxy: UserProxyAgent
 
 

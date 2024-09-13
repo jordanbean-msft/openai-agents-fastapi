@@ -5,17 +5,16 @@ from autogen import AssistantAgent
 from autogen.coding import LocalCommandLineCodeExecutor
 
 from ...decorators.register import register_create_agent_function
-from ...openai_functions.equipment import get_equipment
+from ...openai_functions.stock_data import get_stock_data
 
 logger = logging.getLogger("uvicorn.error")
 temp_dir = tempfile.TemporaryDirectory()
 executor = LocalCommandLineCodeExecutor(timeout=10, work_dir=temp_dir.name)
 
-
 @register_create_agent_function
 def create_agent(config) -> AssistantAgent:
     agent = AssistantAgent(
-        name="agent2",
+        name="stock-price-agent",
         llm_config={
             "config_list": [config],
         },
@@ -27,9 +26,9 @@ def create_agent(config) -> AssistantAgent:
     )
 
     agent.register_for_llm(
-        name="get_data",
-        description="Get data",
-    )(get_equipment)
+        name="get_stock_data",
+        description="Get stock data",
+    )(get_stock_data)
 
     logger.debug(f"Agent created - NAME: {agent.name}")
 

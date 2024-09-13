@@ -3,10 +3,11 @@ from pydantic import BaseModel
 from .chat_history import ChatHistory
 
 
-class TestResults(BaseModel):
-    test: int
+class StockNewsOutput(BaseModel):
+    stockTicker: str
+    companyName: str
     overall_result: str
     chat_results: list[ChatHistory]
 
 
-__all__ = ["TestResults"]
+__all__ = ["StockNewsOutput"]

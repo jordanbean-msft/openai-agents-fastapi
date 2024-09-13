@@ -9,7 +9,6 @@ logger = logging.getLogger("uvicorn.error")
 temp_dir = tempfile.TemporaryDirectory()
 executor = LocalCommandLineCodeExecutor(timeout=10, work_dir=temp_dir.name)
 
-
 def create_agent() -> UserProxyAgent:
     agent = UserProxyAgent(
         name="user",

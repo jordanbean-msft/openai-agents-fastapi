@@ -1,7 +1,6 @@
 import logging
 
 import aiohttp
-import psycopg2
 from fastapi import APIRouter, Response
 from opentelemetry import trace
 
@@ -18,11 +17,8 @@ logger = logging.getLogger("uvicorn.error")
 async def startup_probe(response: Response):
     azure_openai_status_dict = await check_azure_openai()
 
-    database_status_dict = check_database_status()
-
     return_value = {
         "azure_openai": azure_openai_status_dict,
-        "database": database_status_dict,
     }
 
     response.status_code = 200
@@ -75,26 +71,3 @@ async def check_azure_openai():
             }
 
     return status_dict
-
-
-@tracer.start_as_current_span(name="check_database_status")
-def check_database_status():
-    try:
-        with psycopg2.connect(get_settings().postgresql_connection_string) as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT 1")
-                status = cursor.fetchone()
-    except psycopg2.Error as e:
-        status = (0, e)
-
-    return_value = {}
-
-    if status[0] == 1:
-        return_value = {"status": 200}
-    else:
-        return_value = {
-            "status": 503,
-            "error": f"Error: {status[1]}",
-        }
-
-    return return_value
