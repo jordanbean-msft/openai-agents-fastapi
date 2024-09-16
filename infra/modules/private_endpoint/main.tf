@@ -31,18 +31,14 @@ resource "azurerm_private_endpoint" "private_endpoint" {
     name                           = "${var.name}Connection"
     private_connection_resource_id = var.private_connection_resource_id
     is_manual_connection           = var.is_manual_connection
-    subresource_names              = try([var.subresource_name], null)
+    subresource_names              = try(var.subresource_names, null)
     request_message                = try(var.request_message, null)
-  }
-
-  private_dns_zone_group {
-    name                 = var.private_dns_zone_group_name
-    private_dns_zone_ids = var.private_dns_zone_group_ids
   }
 
   lifecycle {
     ignore_changes = [
-      tags
+      tags,
+      private_dns_zone_group   # don't change the private dns zone group that Azure Policy is going to add
     ]
   }
 }

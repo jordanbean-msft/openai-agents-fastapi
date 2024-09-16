@@ -37,17 +37,41 @@ resource "azurerm_storage_share" "file_share" {
   quota                = 1
 }
 
-module "private_endpoint" {
+module "private_endpoint_blob" {
   source                         = "../private_endpoint"
-  name                           = azurerm_storage_account.storage_account.name
+  name                           = "${azurerm_storage_account.storage_account.name}-blob"
   resource_group_name            = var.resource_group_name
   tags                           = var.tags
   resource_token                 = var.resource_token
   private_connection_resource_id = azurerm_storage_account.storage_account.id
   location                       = var.location
   subnet_id                      = var.subnet_id
-  subresource_name               = "blob"
+  subresource_names              = ["blob"]
   is_manual_connection           = false
-  private_dns_zone_group_name    = "default"
-  private_dns_zone_group_ids     = var.private_dns_zone_group_ids
+}
+
+module "private_endpoint_file" {
+  source                         = "../private_endpoint"
+  name                           = "${azurerm_storage_account.storage_account.name}-file"
+  resource_group_name            = var.resource_group_name
+  tags                           = var.tags
+  resource_token                 = var.resource_token
+  private_connection_resource_id = azurerm_storage_account.storage_account.id
+  location                       = var.location
+  subnet_id                      = var.subnet_id
+  subresource_names              = ["file"]
+  is_manual_connection           = false
+}
+
+module "private_endpoint_web" {
+  source                         = "../private_endpoint"
+  name                           = "${azurerm_storage_account.storage_account.name}-web"
+  resource_group_name            = var.resource_group_name
+  tags                           = var.tags
+  resource_token                 = var.resource_token
+  private_connection_resource_id = azurerm_storage_account.storage_account.id
+  location                       = var.location
+  subnet_id                      = var.subnet_id
+  subresource_names              = ["web"]
+  is_manual_connection           = false
 }

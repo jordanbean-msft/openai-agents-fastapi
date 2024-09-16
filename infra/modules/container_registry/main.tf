@@ -40,8 +40,6 @@ module "private_endpoint" {
   private_connection_resource_id = azurerm_container_registry.acr.id
   location                       = var.location
   subnet_id                      = var.subnet_id
-  subresource_name               = "registry"
+  subresource_names              = ["registry"]
   is_manual_connection           = false
-  private_dns_zone_group_name    = "default"
-  private_dns_zone_group_ids     = var.private_dns_zone_group_ids
 }

@@ -15,5 +15,5 @@ state:
   remote:
     backend: AzureBlobStorage
     config:
-      accountName: 
+      accountName: saterraformeus2rjb
       containerName: openai-agents-fastapi

@@ -96,7 +96,6 @@ module "storage_account" {
   resource_token                = local.resource_token
   file_share_name               = local.file_share_name
   subnet_id                     = module.virtual_network.private_endpoint_subnet_id
-  private_dns_zone_group_ids    = [module.dns_zones.storage_blob_dns_zone_id]
   public_network_access_enabled = var.public_network_access_enabled
 }
 
@@ -122,17 +121,8 @@ module "key_vault" {
       name  = local.azure_openai_secret_name
       value = module.openai.azure_cognitive_services_key
     },
-    {
-      name  = local.azure_cognitive_services_secret_name
-      value = module.document_intelligence.azure_cognitive_services_key
-    },
-    {
-      name  = local.azure_search_service_secret_name
-      value = module.search_service.azure_search_service_apikey
-    },
   ]
   subnet_id                     = module.virtual_network.private_endpoint_subnet_id
-  private_dns_zone_group_ids    = [module.dns_zones.key_vault_dns_zone_id]
   public_network_access_enabled = var.public_network_access_enabled
 }
 
@@ -140,16 +130,12 @@ module "key_vault" {
 # Deploy container registry
 # ------------------------------------------------------------------------------------------------------
 module "container_registry" {
-  source              = "./modules/container_registry"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  tags                = local.tags
-  resource_token      = local.resource_token
-  subnet_id           = module.virtual_network.private_endpoint_subnet_id
-  private_dns_zone_group_ids = [
-    module.dns_zones.container_registry_dns_zone_id,
-    module.dns_zones.container_registry_region_dns_zone_id
-  ]
+  source                        = "./modules/container_registry"
+  location                      = var.location
+  resource_group_name           = var.resource_group_name
+  tags                          = local.tags
+  resource_token                = local.resource_token
+  subnet_id                     = module.virtual_network.private_endpoint_subnet_id
   public_network_access_enabled = var.public_network_access_enabled
 }
 
@@ -219,18 +205,20 @@ module "container_app" {
           identity            = module.managed_identity.user_assigned_identity_id
           key_vault_secret_id = "${module.key_vault.azure_key_vault_endpoint}secrets/${local.container_registry_admin_password_secret_name}"
 
-        },
-        {
-          name                = local.azure_search_service_secret_name,
-          identity            = module.managed_identity.user_assigned_identity_id
-          key_vault_secret_id = "${module.key_vault.azure_key_vault_endpoint}secrets/${local.azure_search_service_secret_name}"
-        },
+        }
       ]
       identity = {
         type         = "UserAssigned"
         identity_ids = [module.managed_identity.user_assigned_identity_id]
       }
       template = {
+        volume = [
+          {
+            name         = module.storage_account.file_share_name
+            storage_name = module.storage_account.file_share_name
+            storage_type = "AzureFile"
+          }
+        ]
         containers = [
           {
             name   = "api"
@@ -267,6 +255,12 @@ module "container_app" {
                 value = "readiness,liveness,startup"
               },
             ])
+            volume_mounts = [
+              {
+                volume_name = module.storage_account.file_share_name
+                mount_path  = "/code/app/data"
+              }
+            ]
             liveness_probe = {
               initial_delay    = 30
               interval_seconds = 30
@@ -314,34 +308,5 @@ module "openai" {
   resource_token                = local.resource_token
   tags                          = local.tags
   subnet_id                     = module.virtual_network.private_endpoint_subnet_id
-  private_dns_zone_group_ids    = [module.dns_zones.openai_dns_zone_id]
-  public_network_access_enabled = var.public_network_access_enabled
-}
-
-# ------------------------------------------------------------------------------------------------------
-# Deploy Document Intelligence
-# ------------------------------------------------------------------------------------------------------
-module "document_intelligence" {
-  source                        = "./modules/document_intelligence"
-  location                      = var.location
-  resource_group_name           = var.resource_group_name
-  tags                          = local.tags
-  resource_token                = local.resource_token
-  subnet_id                     = module.virtual_network.private_endpoint_subnet_id
-  private_dns_zone_group_ids    = [module.dns_zones.cognitive_services_dns_zone_id]
-  public_network_access_enabled = var.public_network_access_enabled
-}
-
-# ------------------------------------------------------------------------------------------------------
-# Deploy search_service
-# ------------------------------------------------------------------------------------------------------
-module "search_service" {
-  source                        = "./modules/search_service"
-  location                      = var.location
-  resource_group_name           = var.resource_group_name
-  resource_token                = local.resource_token
-  tags                          = local.tags
-  subnet_id                     = module.virtual_network.private_endpoint_subnet_id
-  private_dns_zone_group_ids    = [module.dns_zones.search_dns_zone_id]
   public_network_access_enabled = var.public_network_access_enabled
 }

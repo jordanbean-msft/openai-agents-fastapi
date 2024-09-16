@@ -31,6 +31,11 @@ resource "azurerm_key_vault" "kv" {
   sku_name                      = "standard"
   tags                          = var.tags
   public_network_access_enabled = var.public_network_access_enabled
+  enabled_for_deployment        = true
+  network_acls {
+    bypass         = "AzureServices"
+    default_action = var.public_network_access_enabled == true ? "Allow" : "Deny"
+  }
 }
 
 resource "azurerm_key_vault_access_policy" "app" {
@@ -80,8 +85,6 @@ module "private_endpoint" {
   private_connection_resource_id = azurerm_key_vault.kv.id
   location                       = var.location
   subnet_id                      = var.subnet_id
-  subresource_name               = "vault"
+  subresource_names              = ["vault"]
   is_manual_connection           = false
-  private_dns_zone_group_name    = "default"
-  private_dns_zone_group_ids     = var.private_dns_zone_group_ids
 }

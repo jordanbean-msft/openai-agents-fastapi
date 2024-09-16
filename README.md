@@ -4,12 +4,6 @@
 
 This repo demonstrates a simple Python FastAPI application that uses several agents. It creates several agents (using the `autogen` framework) that each have their own functions to retrieve relevant data and the instructions needed to process that data.
 
-Here is a sequence diagram that shows the application flow.
-
-```mermaid
-
-```
-
 ### Physical Architecture
 
 ![physical-architecture](.img/physical-architecture.png)
@@ -94,11 +88,16 @@ Here is a sequence diagram that shows the application flow.
 1.  Create a `.env` file with the following values (specify your own values):
 
 	```powershell
-	AZURE_OPENAI_API_KEY=""
-	AZURE_OPENAI_ENDPOINT=""
-	OPENAI_API_VERSION="2024-05-13"
-	OPENAI_MODEL_ID=""
+	AZURE_OPENAI_ENDPOINT=
+	OPENAI_API_VERSION=2024-06-01
+	OPENAI_MODEL_ID=
 	OPENAI_MODEL_API_NAME="gpt-4o-2024-05-13"
+	CLIENT_ID=
+	CLIENT_SECRET=
+	AUTHORITY=
+	OPENAI_CLIENT_ID=
+	APIM_SUBSCRIPTION_KEY=
+	APPLICATION_INSIGHTS_CONNECTION_STRING=
 	```
 
 1.  Run the API
@@ -146,21 +145,5 @@ Here is a sequence diagram that shows the application flow.
 ## Running in Azure
 
 This demo will run the same API in Azure after the `azd up` command has finished building the Docker image, deploying the infrastructure & then deploying the application. In order for the application to run correctly, you will need to upload the data files to Azure Storage (the `/data` File Share) so they can be mounted as files on the Container App Docker container. Check the names of the environment variables of the Container App and ensure you have the same file names.
-
-## Azure DevOps pipeline
-
-### Install on self-hosted build agent VM (Windows)
-
-- Python 3.12
-- Azure CLI
-- Azure Developer CLI
-- Terraform CLI
-- Docker Desktop
-
-### YAML pipeline
-
-1.	Use the AzDO YAML pipeline located at `.azdo/pipelines/azure-pipeline.yml`.
-
-1.	Update the `.azdo/pipelines/env/dev.yml` and `.azdo/pipelines/env/global.yml` files to match your environment.
 
 ## Links
