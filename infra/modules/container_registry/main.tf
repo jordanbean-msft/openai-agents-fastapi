@@ -27,8 +27,15 @@ resource "azurerm_container_registry" "acr" {
   resource_group_name           = var.resource_group_name
   location                      = var.location
   sku                           = "Premium"
-  admin_enabled                 = true
+  admin_enabled                 = false
   public_network_access_enabled = var.public_network_access_enabled
+  network_rule_bypass_option    = "AzureServices"
+}
+
+resource "azurerm_role_assignment" "managed_identity_acr_role" {
+  scope                = azurerm_container_registry.acr.id
+  role_definition_name = "AcrPull"
+  principal_id         = var.managed_identity_principal_id
 }
 
 module "private_endpoint" {

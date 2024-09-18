@@ -28,13 +28,8 @@ variable "container_registory_login_server" {
   type        = string
 }
 
-variable "container_registry_admin_username" {
-  description = "The container registry admin username."
-  type        = string
-}
-
-variable "container_registry_admin_password_secret_name" {
-  description = "The container registry admin password secret name."
+variable "managed_identity_id" {
+  description = "The id of the managed identity to assign to the container registry."
   type        = string
 }
 

@@ -11,9 +11,9 @@ terraform {
   }
 }
 # ------------------------------------------------------------------------------------------------------
-# DEPLOY VIRTUAL NETWORK
+# DEPLOY Storage Account
 # ------------------------------------------------------------------------------------------------------
-resource "azurecaf_name" "vnet_name" {
+resource "azurecaf_name" "storage_account_name" {
   name          = var.resource_token
   resource_type = "azurerm_storage_account"
   random_length = 0
@@ -21,7 +21,7 @@ resource "azurecaf_name" "vnet_name" {
 }
 
 resource "azurerm_storage_account" "storage_account" {
-  name                            = azurecaf_name.vnet_name.result
+  name                            = azurecaf_name.storage_account_name.result
   resource_group_name             = var.resource_group_name
   location                        = var.location
   account_tier                    = "Standard"
@@ -35,6 +35,12 @@ resource "azurerm_storage_share" "file_share" {
   name                 = var.file_share_name
   storage_account_name = azurerm_storage_account.storage_account.name
   quota                = 1
+}
+
+resource "azurerm_role_assignment" "managed_identity_storage_account_file_share_reader" {
+  scope                = azurerm_storage_account.storage_account.id
+  role_definition_name = "Storage File Data SMB Share Reader"
+  principal_id         = var.managed_identity_principal_id
 }
 
 module "private_endpoint_blob" {

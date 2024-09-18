@@ -32,3 +32,8 @@ variable "public_network_access_enabled" {
   description = "Whether or not public network access is enabled"
   type        = bool
 }
+
+variable "managed_identity_principal_id" {
+  description = "The principal id of the managed identity to assign to the storage account"
+  type        = string
+}

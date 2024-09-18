@@ -38,7 +38,7 @@ resource "azurerm_private_endpoint" "private_endpoint" {
   lifecycle {
     ignore_changes = [
       tags,
-      private_dns_zone_group   # don't change the private dns zone group that Azure Policy is going to add
+      private_dns_zone_group # don't change the private dns zone group that Azure Policy is going to add
     ]
   }
 }

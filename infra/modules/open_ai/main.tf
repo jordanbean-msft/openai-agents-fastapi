@@ -59,6 +59,12 @@ resource "azurerm_cognitive_deployment" "embedding" {
   }
 }
 
+resource "azurerm_role_assignment" "managed_identity_cognitive_services_openai_contributor" {
+  scope                = azurerm_cognitive_account.cognitive_account.id
+  role_definition_name = "Cognitive Services OpenAI Contributor"
+  principal_id         = var.managed_identity_principal_id
+}
+
 module "private_endpoint" {
   source                         = "../private_endpoint"
   name                           = azurerm_cognitive_account.cognitive_account.name

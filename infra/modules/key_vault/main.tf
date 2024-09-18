@@ -32,37 +32,24 @@ resource "azurerm_key_vault" "kv" {
   tags                          = var.tags
   public_network_access_enabled = var.public_network_access_enabled
   enabled_for_deployment        = true
+  enable_rbac_authorization     = true
   network_acls {
     bypass         = "AzureServices"
     default_action = var.public_network_access_enabled == true ? "Allow" : "Deny"
   }
 }
 
-resource "azurerm_key_vault_access_policy" "app" {
-  count        = length(var.access_policy_object_ids)
-  key_vault_id = azurerm_key_vault.kv.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = var.access_policy_object_ids[count.index]
-
-  secret_permissions = [
-    "Get",
-    "List",
-  ]
+resource "azurerm_role_assignment" "managed_identity_keyvault_secret_officer" {
+  for_each             = var.access_policy_object_ids
+  scope                = azurerm_key_vault.kv.id
+  role_definition_name = "Key Vault Secrets Officer"
+  principal_id         = each.value
 }
 
-resource "azurerm_key_vault_access_policy" "user" {
-  count        = var.principal_id == "" ? 0 : 1
-  key_vault_id = azurerm_key_vault.kv.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = var.principal_id
-
-  secret_permissions = [
-    "Get",
-    "Set",
-    "List",
-    "Delete",
-    "Purge"
-  ]
+resource "azurerm_role_assignment" "principal_id_keyvault_key_officer" {
+  scope                = azurerm_key_vault.kv.id
+  role_definition_name = "Key Vault Secrets Officer"
+  principal_id         = var.principal_id
 }
 
 resource "azurerm_key_vault_secret" "secrets" {
@@ -71,8 +58,8 @@ resource "azurerm_key_vault_secret" "secrets" {
   value        = var.secrets[count.index].value
   key_vault_id = azurerm_key_vault.kv.id
   depends_on = [
-    azurerm_key_vault_access_policy.user,
-    azurerm_key_vault_access_policy.app
+    azurerm_role_assignment.managed_identity_keyvault_secret_officer,
+    azurerm_role_assignment.principal_id_keyvault_key_officer
   ]
 }
 

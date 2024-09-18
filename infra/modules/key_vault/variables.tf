@@ -20,14 +20,12 @@ variable "resource_token" {
 
 variable "principal_id" {
   description = "The Id of the service principal to add to deployed keyvault access policies"
-  sensitive   = true
   type        = string
 }
 
 variable "access_policy_object_ids" {
   description = "A list of object ids to be be added to the keyvault access policies"
-  type        = list(string)
-  sensitive   = true
+  type        = set(string)
   default     = []
 }
 
@@ -48,4 +46,9 @@ variable "subnet_id" {
 variable "public_network_access_enabled" {
   description = "Whether or not public network access is enabled"
   type        = bool
+}
+
+variable "managed_identity_principal_id" {
+  description = "The principal id of the managed identity to assign to the key vault"
+  type        = string
 }
