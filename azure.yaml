@@ -1,2 +1,11 @@
-name: template-repository
+name: openai-agents-fastapi
+infra:
+  provider: terraform
 services:
+  api:
+state:
+  remote:
+  backend: AzureBlobStorage
+  config:
+    accountName: saterraformeus2rjb
+    containerName: openai-agents-fastapi
