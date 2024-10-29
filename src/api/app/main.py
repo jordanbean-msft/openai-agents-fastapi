@@ -9,6 +9,7 @@ from .log_config import configure_azure_monitor_outer
 from .routers import analyze, liveness, readiness, startup
 from .dependencies import setup_dependencies
 
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("uvicorn.error")
 
 @asynccontextmanager
