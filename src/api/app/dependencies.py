@@ -2,19 +2,11 @@ import asyncio
 import logging
 from functools import lru_cache
 
-from autogen import AssistantAgent, UserProxyAgent, GroupChat, GroupChatManager
 from fastapi import Depends
 from msal import ConfidentialClientApplication
-
-# ------------------------------------------------------------------------------
-# NOTE: DO NOT REMOVE THIS, you must import the create_agent functions in order
-# for the decorators to register the functions
-from .agents import user_proxy, news_agent, stock_agent
+from .models import AllDependencies
 from .config import get_settings
-from .decorators import open_ai_agent_functions
-from .models.all_agents import AllAgents
-
-# ------------------------------------------------------------------------------
+from semantic_kernel.connectors.ai.open_ai.services.azure_chat_completion import AzureChatCompletion
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -37,8 +29,8 @@ def get_token_internal():
 
     return result
 
-
-async def setup_agents_internal() -> AllAgents:
+@lru_cache
+async def setup_dependencies_internal() -> AllDependencies:
     config = {}
     config["base_url"] = get_settings().azure_openai_endpoint
     config["api_version"] = get_settings().openai_api_version
@@ -50,55 +42,21 @@ async def setup_agents_internal() -> AllAgents:
 
     config["model"] = get_settings().openai_model_id
 
-    agent_user_proxy = await asyncio.to_thread(user_proxy.create_agent)
+    azure_chat_completion = AzureChatCompletion(
+    )
 
-    news_data_agent = await asyncio.to_thread(news_agent.create_agent, config)
-
-    register_functions(news_data_agent, agent_user_proxy)
-
-    stock_data_agent = await asyncio.to_thread(stock_agent.create_agent, config)
-
-    register_functions(stock_data_agent, agent_user_proxy)
-
-    groupChat = GroupChat(agents=[
-        news_data_agent,
-        stock_data_agent,
-        agent_user_proxy
-    ], messages=[])
-
-    manager = GroupChatManager(groupchat=groupChat, llm_config={
-            "config_list": [config],
-            "cache_seed": None,
-        })
-
-    return AllAgents(
-        news_data_agent=news_data_agent,
-        stock_data_agent=stock_data_agent,
-        agent_user_proxy=agent_user_proxy,
-        manager=manager
+    return AllDependencies(
+        azure_chat_completion=azure_chat_completion
     )
 
 
-def register_functions(agent: AssistantAgent, agent_function_executor: UserProxyAgent):
-    # Register the functions for the agent
-    for function in agent.llm_config["tools"]:
-        name = function["function"]["name"]
-        agent_function_executor.register_for_execution(
-            name=name,
-        )(open_ai_agent_functions[name])
+async def setup_dependencies() -> AllDependencies:
+    return await setup_dependencies_internal()
 
 
-async def setup_agents() -> AllAgents:
-    return await setup_agents_internal()
-
-
-class Agents:
-    def __init__(self, common: AllAgents = Depends(setup_agents)):
+class Dependencies:
+    def __init__(self, common: AllDependencies = Depends(setup_dependencies)):
         self.common = common
-        self.news_data_agent = common.news_data_agent
-        self.stock_data_agent = common.stock_data_agent
-        self.agent_user_proxy = common.agent_user_proxy
-        self.manager = common.manager
+        self.azure_chat_completion = common.azure_chat_completion
 
-
-__all__ = ["setup_agents", "Agents"]
+__all__ = ["setup_agents", "Dependencies"]

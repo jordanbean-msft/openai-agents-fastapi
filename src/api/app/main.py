@@ -6,14 +6,14 @@ from fastapi import FastAPI
 
 from .log_config import configure_azure_monitor_outer
 from .routers import analyze, liveness, readiness, startup
+from .dependencies import setup_dependencies
 
 logger = logging.getLogger("uvicorn.error")
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    setup_dependencies()
     yield
-
 
 app = FastAPI(lifespan=lifespan, debug=True)
 
