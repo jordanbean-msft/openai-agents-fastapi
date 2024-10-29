@@ -37,12 +37,7 @@ async def post_analyze(
 async def analyze(dependencies, stock_news_input):
     message = f"Analyze the stock prices and news articles for {stock_news_input.companyName1} ({stock_news_input.stockTicker1}) and {stock_news_input.companyName2} ({stock_news_input.stockTicker2}). Determine if there is correlation between the two."
 
-    results = await build_chat_results(dependencies, message)
-
-    if hasattr(results, 'items'):
-        chat_results = results
-    else:
-        chat_results = { 'input': results }
+    chat_results = await build_chat_results(dependencies, message)
 
     result = StockNewsOutput(
         stockTicker1=stock_news_input.stockTicker1,
@@ -92,6 +87,6 @@ async def build_chat_results(dependencies, message):
         chat_results = []
 
         async for content in chat.invoke():
-            chat_results.append(content)
+            chat_results.append(content.content)
 
         return chat_results
