@@ -14,6 +14,8 @@ from ..config import get_settings
 from ..dependencies import Dependencies
 from ..models.stock_news_input import StockNewsInput
 from ..models.stock_news_output import StockNewsOutput
+from ..agents.news_agent import NewsAgent
+from ..agents.stock_agent import StockAgent
 
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
@@ -24,7 +26,7 @@ router = APIRouter()
 @tracer.start_as_current_span(name="analyze")
 @router.post("/analyze")
 async def post_analyze(
-    dependencies: Annotated[Agents, Depends()], stock_news_input: StockNewsInput
+    dependencies: Annotated[Dependencies, Depends()], stock_news_input: StockNewsInput
 ) -> StockNewsOutput:
     return await analyze(dependencies, stock_news_input)
 
@@ -42,7 +44,7 @@ async def analyze(dependencies, stock_news_input):
     result = StockNewsOutput(
         stockTicker=stock_news_input.stockTicker,
         companyName=stock_news_input.companyName,
-        overall_result=list(chat_results.values())[-1].summary,
+        overall_result="",
         chat_results=chat_results,
     )
 
@@ -52,13 +54,13 @@ async def analyze(dependencies, stock_news_input):
 async def build_chat_results(dependencies, message):
     with tracer.start_as_current_span(name="build_chat_results"):
         kernel = Kernel()
-        kernel.add_service(dependencies.Dependencies.azure_chat_completion)
+        kernel.add_service(dependencies.azure_chat_completion)
 
-        stock_agent = stock_agent.create_agent(
+        stock_agent = StockAgent(
             kernel=kernel
         )
 
-        news_agent = news_agent.create_agent(
+        news_agent = NewsAgent(
             kernel=kernel
         )
 

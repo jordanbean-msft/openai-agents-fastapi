@@ -10,7 +10,6 @@ opentelemetry-exporter-otlp==1.26.0
 opentelemetry-distro==0.47b0
 azure-monitor-opentelemetry==1.6.1
 fastapi-profiler==1.4.1
-msal==1.30.0
 azure-identity==1.17.1
 aiofiles==24.1.0
 semantic-kernel==1.12.1

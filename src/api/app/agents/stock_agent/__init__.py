@@ -1,3 +1,3 @@
-from .main import create_agent
+from .main import StockAgent
 
-__all__ = ["create_agent"]
+__all__ = ["StockAgent"]

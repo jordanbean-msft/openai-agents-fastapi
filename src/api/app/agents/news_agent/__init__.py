@@ -1,3 +1,3 @@
-from .main import create_agent
+from .main import NewsAgent
 
-__all__ = ["create_agent"]
+__all__ = ["NewsAgent"]

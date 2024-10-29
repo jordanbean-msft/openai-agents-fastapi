@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 
-from .chat_history import ChatHistory
-
+from semantic_kernel.contents.chat_history import ChatHistory
 
 class StockNewsOutput(BaseModel):
     stockTicker: str
