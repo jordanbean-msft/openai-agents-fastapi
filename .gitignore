@@ -355,6 +355,6 @@ MigrationBackup/
 
 .venv/
 
-.vscode/
+.vscode/settings.json
 
 .azure/

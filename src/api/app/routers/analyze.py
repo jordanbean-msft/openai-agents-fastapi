@@ -49,7 +49,6 @@ async def analyze(dependencies, stock_news_input):
         companyName1=stock_news_input.companyName1,
         stockTicker2=stock_news_input.stockTicker2,
         companyName2=stock_news_input.companyName2,
-        overall_result="",
         chat_results=chat_results,
     )
 
@@ -68,45 +67,11 @@ async def build_chat_results(dependencies, message):
         kernel.add_plugin(NewsPlugin(), plugin_name="NewsPlugin")
         kernel.add_plugin(StockPlugin(), plugin_name="StockPlugin")
 
-        stock_agent = StockAgent(
-            kernel=kernel,
-            execution_settings=settings
-        )
+        stock_agent, news_agent = create_agents(kernel, settings)
 
-        news_agent = NewsAgent(
-            kernel=kernel,
-            execution_settings=settings
-        )
+        termination_function = create_termination_function()
 
-        termination_function = KernelFunctionFromPrompt(
-            function_name="termination",
-            prompt="""
-            Determine if the stock data has been analyzed together with the news data.  If so, respond with a single word: yes
-
-            History:
-            {{$history}}
-            """,
-        )
-
-        selection_function = KernelFunctionFromPrompt(
-            function_name="selection",
-            prompt=f"""
-                Determine which participant takes the next turn in a conversation based on the the most recent participant.
-                State only the name of the participant to take the next turn.
-                No participant should take more than one turn in a row.
-
-                Choose only from these participants:
-                - {stock_agent.name}
-                - {news_agent.name}
-
-                Always follow these rules when selecting the next participant:
-                - After user input, it is {stock_agent.name}'s turn.
-                - After {stock_agent.name} replies, it is {news_agent.name}'s turn.
-
-                History:
-                {{{{$history}}}}
-            """
-        )
+        selection_function = create_selection_function(stock_agent, news_agent)
 
         chat = AgentGroupChat(
             agents=[
@@ -143,3 +108,51 @@ async def build_chat_results(dependencies, message):
             chat_results.append(content.content)
 
         return chat_results
+
+
+def create_selection_function(stock_agent, news_agent):
+    selection_function = KernelFunctionFromPrompt(
+        function_name="selection",
+        prompt=f"""
+                Determine which participant takes the next turn in a conversation based on the the most recent participant.
+                State only the name of the participant to take the next turn.
+                No participant should take more than one turn in a row.
+                Choose only from these participants:
+                - {stock_agent.name}
+                - {news_agent.name}
+                Always follow these rules when selecting the next participant:
+                - After user input, it is {stock_agent.name}'s turn.
+                - After {stock_agent.name} replies, it is {news_agent.name}'s turn.
+                History:
+                {{{{$history}}}}
+            """
+    )
+
+    return selection_function
+
+
+def create_termination_function():
+    termination_function = KernelFunctionFromPrompt(
+        function_name="termination",
+        prompt="""
+            Determine if the stock data has been analyzed together with the news data.  If so, respond with a single word: yes
+            History:
+            {{$history}}
+            """,
+    )
+
+    return termination_function
+
+
+def create_agents(kernel, settings):
+    stock_agent = StockAgent(
+        kernel=kernel,
+        execution_settings=settings
+    )
+
+    news_agent = NewsAgent(
+        kernel=kernel,
+        execution_settings=settings
+    )
+
+    return stock_agent, news_agent
