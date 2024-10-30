@@ -24,7 +24,7 @@ async def startup_probe(response: Response):
     response.status_code = 200
 
     # Set the response status code to 503 if any of the checks failed
-    for key, value in return_value.items():
+    for _, value in return_value.items():
         if value["status"] != 200:
             response.status_code = 503
             break

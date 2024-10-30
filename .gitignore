@@ -350,6 +350,8 @@ MigrationBackup/
 .ionide/
 
 .env
+.env-gpt4
+.env-apim
 
 .venv/
 

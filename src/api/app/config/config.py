@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     openai_client_id: str
     apim_subscription_key: str
     application_insights_connection_string: str
+    azure_openai_api_key: str = ""
+    use_apim: bool = False
 
 
 @lru_cache

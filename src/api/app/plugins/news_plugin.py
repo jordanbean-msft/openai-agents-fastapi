@@ -1,12 +1,13 @@
-from opentelemetry import trace
 from json import loads
-import aiofiles
 import os
 from typing import Annotated
+import aiofiles
+from opentelemetry import trace
 
 from semantic_kernel.functions.kernel_function_decorator import kernel_function
 
 tracer = trace.get_tracer(__name__)
+
 
 class NewsPlugin:
     @tracer.start_as_current_span(name="get_news_data")
@@ -15,7 +16,8 @@ class NewsPlugin:
         return_value = []
         async with aiofiles.open(os.path.abspath(os.path.dirname(__file__)) + '/../data/news_data.json', 'r') as f:
             data = loads(await f.read())
-            return_value = [article for article in data['newsArticles'] if company_name in article['companyName']]
+            return_value = [article for article in data['newsArticles']
+                            if company_name in article['companyName']]
 
         return str(return_value)
 
