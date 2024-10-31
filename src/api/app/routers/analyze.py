@@ -18,8 +18,8 @@ from app.models.stock_news_input import StockNewsInput
 from app.models.stock_news_output import StockNewsOutput
 from app.agents.news_agent import NewsAgent
 from app.agents.stock_agent import StockAgent
-from app.plugins.news_plugin import NewsPlugin
-from app.plugins.stock_plugin import StockPlugin
+from app.plugins.news_file_plugin import NewsPlugin
+from app.plugins.stock_file_plugin import StockPlugin
 
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)

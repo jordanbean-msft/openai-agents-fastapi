@@ -11,24 +11,6 @@ from app.config import get_settings
 logger = logging.getLogger("uvicorn.error")
 
 
-# @lru_cache
-# def get_token():
-#     return get_token_internal()
-
-
-# def get_token_internal():
-#     app = ConfidentialClientApplication(
-#         client_id=get_settings().client_id,
-#         client_credential=get_settings().client_secret,
-#         authority=f"https://login.microsoftonline.com/{get_settings().authority}",
-#     )
-
-#     result = app.acquire_token_for_client(
-#         scopes=[f"api://{get_settings().openai_client_id}//.default"]
-#     )
-
-#     return result
-
 @lru_cache
 def setup_dependencies_internal() -> AllDependencies:
     if get_settings().use_apim:
