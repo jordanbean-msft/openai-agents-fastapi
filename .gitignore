@@ -348,3 +348,13 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+.env
+.env-gpt4
+.env-apim
+
+.venv/
+
+.vscode/settings.json
+
+.azure/
